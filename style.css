@@ -1,0 +1,592 @@
+* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0f0f23 100%);
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            max-width: 100vw;
+            max-height: 100vh;
+            border: 2px solid #00ffff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+        }
+
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #0a0a0a 0%, #1a1a2e 50%, #2d1b69 100%);
+            position: relative;
+            cursor: crosshair;
+        }
+
+        /* Animated stars background */
+        #gameCanvas::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, #fff, transparent),
+                radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
+                radial-gradient(1px 1px at 90px 40px, #fff, transparent),
+                radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.6), transparent),
+                radial-gradient(2px 2px at 160px 30px, #fff, transparent);
+            background-repeat: repeat;
+            background-size: 200px 100px;
+            animation: starMove 20s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes starMove {
+            from { transform: translateX(0); }
+            to { transform: translateX(-200px); }
+        }
+
+        /* Game elements */
+        .player {
+            position: absolute;
+            width: 50px;
+            height: 30px;
+            z-index: 10;
+        }
+
+        /* Main ship body - sleek futuristic hull */
+        .player::before {
+            content: '';
+            position: absolute;
+            width: 35px;
+            height: 20px;
+            background: linear-gradient(135deg, #e6f3ff 0%, #00ccff 30%, #0066cc 100%);
+            clip-path: polygon(0% 50%, 15% 15%, 70% 15%, 100% 50%, 70% 85%, 15% 85%);
+            border-radius: 3px;
+            box-shadow: 
+                0 0 20px rgba(0, 204, 255, 0.7),
+                inset 2px 2px 8px rgba(255, 255, 255, 0.3),
+                inset -2px -2px 8px rgba(0, 102, 204, 0.5);
+            top: 5px;
+            left: 8px;
+            animation: shipPulse 2s ease-in-out infinite;
+        }
+
+        /* Cockpit - glowing center */
+        .player::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle, #ffffff 0%, #00ff88 50%, #00cc66 100%);
+            border-radius: 50%;
+            top: 11px;
+            left: 28px;
+            box-shadow: 
+                0 0 15px rgba(0, 255, 136, 0.9),
+                0 0 25px rgba(0, 255, 136, 0.5);
+            animation: cockpitGlow 1.5s ease-in-out infinite alternate;
+        }
+
+        /* Engine thrusters */
+        .thruster-left,
+        .thruster-right {
+            position: absolute;
+            width: 12px;
+            height: 4px;
+            background: linear-gradient(90deg, transparent 0%, #ff6600 20%, #ffff00 70%, #ffffff 100%);
+            border-radius: 2px;
+            left: -10px;
+            box-shadow: 0 0 10px rgba(255, 255, 0, 0.8);
+            animation: thrusterFlame 0.15s infinite alternate;
+        }
+
+        .thruster-left {
+            top: 8px;
+        }
+
+        .thruster-right {
+            top: 18px;
+        }
+
+        /* Wing details */
+        .wing-top,
+        .wing-bottom {
+            position: absolute;
+            width: 15px;
+            height: 3px;
+            background: linear-gradient(90deg, #0066cc, #00ccff);
+            left: 15px;
+            box-shadow: 0 0 8px rgba(0, 204, 255, 0.5);
+        }
+
+        .wing-top {
+            top: 2px;
+            transform: skew(-15deg);
+        }
+
+        .wing-bottom {
+            bottom: 2px;
+            transform: skew(15deg);
+        }
+
+        @keyframes shipPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes cockpitGlow {
+            from { 
+                box-shadow: 
+                    0 0 15px rgba(0, 255, 136, 0.9),
+                    0 0 25px rgba(0, 255, 136, 0.5);
+            }
+            to { 
+                box-shadow: 
+                    0 0 25px rgba(0, 255, 136, 1),
+                    0 0 35px rgba(0, 255, 136, 0.7);
+            }
+        }
+
+        @keyframes thrusterFlame {
+            from { 
+                transform: scaleX(0.8);
+                opacity: 0.8;
+            }
+            to { 
+                transform: scaleX(1.2);
+                opacity: 1;
+            }
+        }
+
+        .obstacle {
+            position: absolute;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border-radius: 50%;
+            box-shadow: 
+                0 0 20px rgba(255, 107, 107, 0.4),
+                inset -5px -5px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .obstacle::before {
+            content: '💥';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            animation: rotate 3s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .bullet {
+            position: absolute;
+            width: 8px;
+            height: 3px;
+            background: linear-gradient(90deg, #ffff00, #ff6600);
+            border-radius: 2px;
+            box-shadow: 0 0 8px rgba(255, 255, 0, 0.8);
+            z-index: 5;
+        }
+
+        .powerup {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            animation: pulse 1s ease-in-out infinite alternate;
+            z-index: 8;
+        }
+
+        /* Shield Powerup - Planet with rings */
+        .powerup.shield {
+            background: radial-gradient(circle at 30% 30%, #4a90e2, #2c5aa0, #1e3a8a);
+            box-shadow: 
+                0 0 20px rgba(74, 144, 226, 0.6),
+                inset -3px -3px 8px rgba(30, 58, 138, 0.8),
+                inset 3px 3px 8px rgba(135, 206, 250, 0.3);
+        }
+
+        .powerup.shield::before {
+            content: '';
+            position: absolute;
+            width: 36px;
+            height: 8px;
+            border: 2px solid rgba(135, 206, 250, 0.8);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotateX(60deg);
+            box-shadow: 0 0 10px rgba(135, 206, 250, 0.5);
+        }
+
+        .powerup.shield::after {
+            content: '';
+            position: absolute;
+            width: 44px;
+            height: 10px;
+            border: 1px solid rgba(135, 206, 250, 0.6);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotateX(60deg);
+            animation: ringRotate 3s linear infinite;
+        }
+
+        /* Speed Boost Powerup - Comet */
+        .powerup.speed {
+            background: radial-gradient(circle at 30% 30%, #ff6b35, #ff4500, #cc3300);
+            box-shadow: 
+                0 0 25px rgba(255, 107, 53, 0.8),
+                inset -3px -3px 8px rgba(204, 51, 0, 0.8),
+                inset 3px 3px 8px rgba(255, 140, 0, 0.4);
+        }
+
+        .powerup.speed::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #ffaa00, #ff6600);
+            top: 50%;
+            left: -15px;
+            transform: translateY(-50%);
+            border-radius: 2px;
+            animation: speedTrail 0.3s ease-in-out infinite alternate;
+        }
+
+        .powerup.speed::after {
+            content: '';
+            position: absolute;
+            width: 15px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #ffcc00, #ff8800);
+            top: 40%;
+            left: -12px;
+            transform: translateY(-50%);
+            border-radius: 2px;
+            animation: speedTrail 0.4s ease-in-out infinite alternate;
+        }
+
+        /* Shrink Powerup - Small asteroid */
+        .powerup.shrink {
+            background: radial-gradient(circle at 30% 30%, #00ff88, #00cc66, #009944);
+            box-shadow: 
+                0 0 20px rgba(0, 255, 136, 0.6),
+                inset -3px -3px 8px rgba(0, 153, 68, 0.8),
+                inset 3px 3px 8px rgba(102, 255, 178, 0.4);
+            width: 25px;
+            height: 25px;
+        }
+
+        .powerup.shrink::before {
+            content: '↓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 16px;
+            color: #ffffff;
+            text-shadow: 0 0 5px rgba(0, 255, 136, 0.8);
+        }
+
+        /* Curse (Grow) Powerup - Dark moon */
+        .powerup.curse {
+            background: radial-gradient(circle at 30% 30%, #8b5cf6, #7c3aed, #5b21b6);
+            box-shadow: 
+                0 0 25px rgba(139, 92, 246, 0.6),
+                inset -4px -4px 10px rgba(91, 33, 182, 0.9),
+                inset 4px 4px 10px rgba(196, 181, 253, 0.3);
+            width: 35px;
+            height: 35px;
+            animation: cursePulse 0.8s ease-in-out infinite alternate;
+        }
+
+        .powerup.curse::before {
+            content: '⚠️';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            animation: curseWarning 1s ease-in-out infinite;
+        }
+
+        @keyframes ringRotate {
+            from { transform: translate(-50%, -50%) rotateX(60deg) rotateZ(0deg); }
+            to { transform: translate(-50%, -50%) rotateX(60deg) rotateZ(360deg); }
+        }
+
+        @keyframes speedTrail {
+            from { opacity: 0.6; transform: translateY(-50%) scaleX(0.8); }
+            to { opacity: 1; transform: translateY(-50%) scaleX(1.2); }
+        }
+
+        @keyframes cursePulse {
+            from { 
+                transform: scale(1);
+                box-shadow: 
+                    0 0 25px rgba(139, 92, 246, 0.6),
+                    inset -4px -4px 10px rgba(91, 33, 182, 0.9),
+                    inset 4px 4px 10px rgba(196, 181, 253, 0.3);
+            }
+            to { 
+                transform: scale(1.15);
+                box-shadow: 
+                    0 0 35px rgba(139, 92, 246, 0.9),
+                    inset -4px -4px 10px rgba(91, 33, 182, 0.9),
+                    inset 4px 4px 10px rgba(196, 181, 253, 0.3);
+            }
+        }
+
+        @keyframes curseWarning {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.2); }
+        }
+
+        .explosion {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle, #ffff00, #ff6600, transparent);
+            border-radius: 50%;
+            animation: explode 0.3s ease-out forwards;
+            z-index: 15;
+        }
+
+        @keyframes explode {
+            from { 
+                transform: scale(0);
+                opacity: 1;
+            }
+            to { 
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+
+        /* UI Elements */
+        #gameUI {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #00ffff;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+            z-index: 20;
+        }
+
+        #gameOverScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #00ffff;
+            text-align: center;
+            z-index: 100;
+        }
+
+        #gameOverScreen h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+            animation: gameOverGlow 1s ease-in-out infinite alternate;
+        }
+
+        @keyframes gameOverGlow {
+            from { text-shadow: 0 0 20px rgba(255, 0, 0, 0.8); }
+            to { text-shadow: 0 0 30px rgba(255, 0, 0, 1); }
+        }
+
+        #gameOverScreen p {
+            font-size: 24px;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+        }
+
+        #restartBtn {
+            padding: 15px 30px;
+            font-size: 20px;
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(45deg, #00ffff, #0066ff);
+            color: #000;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+        }
+
+        #restartBtn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.8);
+        }
+
+        #instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(0, 255, 255, 0.7);
+            font-size: 14px;
+            text-align: center;
+            z-index: 20;
+        }
+
+        /* Mobile control buttons */
+        #mobileControls {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            gap: 40px;
+            z-index: 30;
+        }
+
+        .mobile-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid #00ffff;
+            background: rgba(0, 255, 255, 0.1);
+            color: #00ffff;
+            font-size: 16px;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            touch-action: manipulation;
+            backdrop-filter: blur(10px);
+            box-shadow: 
+                0 0 20px rgba(0, 255, 255, 0.3),
+                inset 0 0 20px rgba(0, 255, 255, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        .mobile-btn:active {
+            transform: scale(0.95);
+            background: rgba(0, 255, 255, 0.3);
+            box-shadow: 
+                0 0 30px rgba(0, 255, 255, 0.6),
+                inset 0 0 30px rgba(0, 255, 255, 0.2);
+        }
+
+        .mobile-btn .btn-icon {
+            font-size: 28px;
+            margin-bottom: 2px;
+        }
+
+        .mobile-btn .btn-text {
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 850px) {
+            #gameContainer {
+                width: 100vw;
+                height: 100vh;
+                border: none;
+                border-radius: 0;
+            }
+            
+            #gameUI {
+                font-size: 16px;
+            }
+            
+            #gameOverScreen h1 {
+                font-size: 36px;
+            }
+            
+            #gameOverScreen p {
+                font-size: 20px;
+            }
+            
+            #instructions {
+                display: none;
+            }
+            
+            #mobileControls {
+                display: flex;
+            }
+            
+            .mobile-btn {
+                width: 70px;
+                height: 70px;
+            }
+            
+            .mobile-btn .btn-icon {
+                font-size: 24px;
+            }
+            
+            .mobile-btn .btn-text {
+                font-size: 10px;
+            }
+        }
+
+        .shield-active {
+            opacity: 0.3 !important;
+            transition: opacity 0.3s ease !important;
+        }
+
+        .speed-active {
+            animation: speedBoost 0.2s ease-in-out infinite alternate;
+        }
+
+        @keyframes speedBoost {
+            from { 
+                transform: scale(1);
+                filter: hue-rotate(0deg);
+            }
+            to { 
+                transform: scale(1.05);
+                filter: hue-rotate(20deg);
+            }
+        }
+
+        .shrink-active {
+            transform: scale(0.7) !important;
+            transition: transform 0.3s ease !important;
+        }
+
+        .curse-active {
+            transform: scale(1.4) !important;
+            transition: transform 0.3s ease !important;
+            filter: hue-rotate(300deg) !important;
+        }
